@@ -5,8 +5,6 @@ import com.qingqing.common.util.CollectionsUtil;
 import com.qingqing.study.dao.TSimpleUserEntityDao;
 import com.qingqing.study.domain.HibernateOperateType;
 import com.qingqing.study.domain.TSimpleUserEntity;
-import org.hibernate.Session;
-import org.hibernate.criterion.Criterion;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,19 +17,20 @@ import java.util.List;
  */
 public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
 
-    @Autowired
-    private HibernateOperateType hot;
+    private HibernateOperateType operateType = HibernateOperateType.QBC;
 
     @Autowired
     private HibernateTemplate hibernateTemplate;
 
     public List<TSimpleUserEntity> findAll() {
+
         return hibernateTemplate.find("from TSimpleUserEntity user");
+//        return (List<TSimpleUserEntity>) hibernateTemplate.find("from TSimpleUserEntity user", null);//hibernate4的写法
     }
 
     public TSimpleUserEntity findById(long id) {
-        List<TSimpleUserEntity> list = null;
-        switch (hot){
+        List<?> list = null;
+        switch (operateType){
             case HQL:
                 list = hibernateTemplate.find("from TSimpleUserEntity where id = " + id);
                 break;
@@ -41,7 +40,8 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
                 list = hibernateTemplate.findByCriteria(dc);
                 break;
             case SQL:
-                return null;
+                String sql = "select * from t_simple_user where id = :id";
+                list = hibernateTemplate.getSessionFactory().getCurrentSession().createSQLQuery(sql).setParameter("id", id).list();
             default:
                throw new QingQingRuntimeException("");
         }
@@ -49,7 +49,7 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
         if(CollectionsUtil.isNullOrEmpty(list)){
             return null;
         }else {
-            return list.get(0);
+            return (TSimpleUserEntity)list.get(0);
         }
     }
 

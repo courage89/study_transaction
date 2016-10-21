@@ -20,12 +20,14 @@ import javax.annotation.Resource;
 })
 public class SimpleUserDaoImplTest{
 
-    @Resource(name = "simpleUserEntitySFDao")
-//    @Resource(name = "simpleUserEntityHTDao")
+//    @Resource(name = "simpleUserEntitySFDao")
+    @Resource(name = "simpleUserEntityHTDao")
     private TSimpleUserEntityDao simpleUserDao;
 
     @Test
     public void testDao(){
-        System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findAll()));
+//        System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findAll()));
+
+        System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findByNameAndAge("name1", 1)));
     }
 }

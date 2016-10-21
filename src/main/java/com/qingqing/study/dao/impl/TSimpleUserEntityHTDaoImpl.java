@@ -5,6 +5,8 @@ import com.qingqing.common.util.CollectionsUtil;
 import com.qingqing.study.dao.TSimpleUserEntityDao;
 import com.qingqing.study.domain.HibernateOperateType;
 import com.qingqing.study.domain.TSimpleUserEntity;
+import org.hibernate.SessionFactory;
+import org.hibernate.classic.Session;
 import org.hibernate.criterion.DetachedCriteria;
 import org.hibernate.criterion.Restrictions;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,7 +19,7 @@ import java.util.List;
  */
 public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
 
-    private HibernateOperateType operateType = HibernateOperateType.QBC;
+    private HibernateOperateType operateType = HibernateOperateType.SQL;
 
     @Autowired
     private HibernateTemplate hibernateTemplate;
@@ -40,8 +42,17 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
                 list = hibernateTemplate.findByCriteria(dc);
                 break;
             case SQL:
+                Session session = null;
                 String sql = "select * from t_simple_user where id = :id";
-                list = hibernateTemplate.getSessionFactory().getCurrentSession().createSQLQuery(sql).setParameter("id", id).list();
+                SessionFactory sessionFactory = hibernateTemplate.getSessionFactory();
+                try {
+                    session = sessionFactory.openSession();
+                    list = session.createSQLQuery(sql).setParameter("id", id).list();
+                }finally {
+                    if(session != null){
+                        session.close();
+                    }
+                }
             default:
                throw new QingQingRuntimeException("");
         }
@@ -54,7 +65,33 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
     }
 
     public List<TSimpleUserEntity> findByNameAndAge(String name, int age) {
-        return null;
+
+        List<?> list = null;
+        switch (operateType) {
+            case HQL:
+                list = hibernateTemplate.findByNamedParam("from TSimpleUserEntity where name = :name and age = :age", new String[]{"name", "age"}, new Object[]{name, age});
+                break;
+            case QBC:
+                DetachedCriteria dc = DetachedCriteria.forClass(TSimpleUserEntity.class).add(Restrictions.eq(TSimpleUserEntity.NAME, name)).add(Restrictions.eq(TSimpleUserEntity.AGE, age));
+                list = hibernateTemplate.findByCriteria(dc);
+                break;
+            case SQL:
+                Session session = null;
+                String sql = "select * from t_simple_user where name = :name and age = :age";
+                SessionFactory sessionFactory = hibernateTemplate.getSessionFactory();
+                try {
+                    session = sessionFactory.openSession();
+                    list = session.createSQLQuery(sql).setParameter("name", name).setParameter("age", age).list();
+                }finally {
+                    if(session != null){
+                        session.close();
+                    }
+                }
+                break;
+            default:
+                throw new QingQingRuntimeException("");
+        }
+        return (List<TSimpleUserEntity>) list;
     }
 
     public void update(TSimpleUserEntity entity) {

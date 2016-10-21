@@ -11,8 +11,6 @@ import javax.annotation.Resource;
  *
  */
 
-public class SimpleUserDaoImplTest extends TestBase {
-
 //    @Resource(name = "simpleUserEntitySFDao")
     @Resource(name = "simpleUserEntityHTDao")
     private TSimpleUserEntityDao simpleUserDao;
@@ -23,6 +21,9 @@ public class SimpleUserDaoImplTest extends TestBase {
 
         int id = 1;
         System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findById(id)));
+//        System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findAll()));
+
+        System.out.println(JsonUtil.getJsonFromObject(simpleUserDao.findByNameAndAge("name1", 1)));
     }
 
 

@@ -32,7 +32,7 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
 
     public TSimpleUserEntity findById(long id) {
         List<?> list = null;
-        switch (operateType){
+        switch (operateType) {
             case HQL:
                 list = hibernateTemplate.find("from TSimpleUserEntity where id = " + id);
                 break;
@@ -47,20 +47,21 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
                 SessionFactory sessionFactory = hibernateTemplate.getSessionFactory();
                 try {
                     session = sessionFactory.openSession();
-                    list = session.createSQLQuery(sql).setParameter("id", id).list();
-                }finally {
-                    if(session != null){
+                    list = session.createSQLQuery(sql).addEntity(TSimpleUserEntity.class).setParameter("id", id).list();
+                } finally {
+                    if (session != null) {
                         session.close();
                     }
                 }
+                break;
             default:
-               throw new QingQingRuntimeException("");
+                throw new QingQingRuntimeException("");
         }
 
-        if(CollectionsUtil.isNullOrEmpty(list)){
+        if (CollectionsUtil.isNullOrEmpty(list)) {
             return null;
-        }else {
-            return (TSimpleUserEntity)list.get(0);
+        } else {
+            return (TSimpleUserEntity) list.get(0);
         }
     }
 
@@ -81,9 +82,9 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
                 SessionFactory sessionFactory = hibernateTemplate.getSessionFactory();
                 try {
                     session = sessionFactory.openSession();
-                    list = session.createSQLQuery(sql).setParameter("name", name).setParameter("age", age).list();
-                }finally {
-                    if(session != null){
+                    list = session.createSQLQuery(sql).addEntity(TSimpleUserEntity.class).setParameter("name", name).setParameter("age", age).list();
+                } finally {
+                    if (session != null) {
                         session.close();
                     }
                 }
@@ -94,17 +95,52 @@ public class TSimpleUserEntityHTDaoImpl implements TSimpleUserEntityDao {
         return (List<TSimpleUserEntity>) list;
     }
 
-    public void update(TSimpleUserEntity entity) {
+    /**
+     * saveOrUpdate操作会先判断对象所处的状态，若为自由态，则直接执行insert的sql操作；若为游离态或者持久态，执行update的sql操作
+     */
+    public void updateDetached(TSimpleUserEntity entity) {
+        System.out.println("updateDetached SQL");
+        hibernateTemplate.update(entity);
 
+//        System.out.println("merge SQL");
+//        hibernateTemplate.merge(entity);
+
+        System.out.println("saveOrUpdate SQL");
+        hibernateTemplate.saveOrUpdate(entity);
+
+//        System.out.println("delete SQL");
+//        hibernateTemplate.delete(entity);
+    }
+
+
+    /**
+     * 如下两个持久化操作都是针对自由态对象， 若对象为游离态，则会DuplicateKeyException。
+     * save 返回主键值， persist不返回主键值。
+     */
+    public void updateTransient(TSimpleUserEntity entity, TSimpleUserEntity entity2) {
+        System.out.println("save SQL");
+        System.out.println((hibernateTemplate.save(entity)));// 仅针对自由态的对象，返回主键
+
+        System.out.println("persist SQL");
+        hibernateTemplate.persist(entity2); //仅针对自由态对象， 不返回主键
     }
 
     public void deletedById(long id) {
+        TSimpleUserEntity entity = this.findById(id);
+        delete(entity);
+    }
 
+    private void delete(TSimpleUserEntity persistentEntity) {
+        if (persistentEntity != null) {
+            persistentEntity.setDeleted(true);
+            hibernateTemplate.update(persistentEntity);
+        }
     }
 
     public void deletedByNameAndAge(String name, int age) {
-
+        List<TSimpleUserEntity> entities = this.findByNameAndAge(name, age);
+        for (TSimpleUserEntity entity : entities) {
+            delete(entity);
+        }
     }
-
-
 }

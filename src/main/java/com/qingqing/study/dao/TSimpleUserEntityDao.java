@@ -15,7 +15,9 @@ public interface TSimpleUserEntityDao {
 
     List<TSimpleUserEntity> findByNameAndAge(String name, int age);
 
-    void update(TSimpleUserEntity entity);
+    void updateDetached(TSimpleUserEntity entity);
+
+    void updateTransient(TSimpleUserEntity entity, TSimpleUserEntity entity2);
 
     void deletedById(long id);
 

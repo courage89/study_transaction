@@ -20,7 +20,7 @@ public class TSimpleUserEntitySFDaoImpl implements TSimpleUserEntityDao {
 //        Session session = sessionFactory.getCurrentSession();//使用hibernate4可以直接getCurrentSession， hibernate3只能先openSession
         Session session = sessionFactory.openSession();
         session.beginTransaction(); // 看成一个事务，进行操作
-        List<TSimpleUserEntity> list=session.createQuery("from TSimpleUserEntity user").list();
+        List<TSimpleUserEntity> list = session.createQuery("from TSimpleUserEntity user").list();
         session.getTransaction().commit(); // 提交对数据的操作
         session.close();
         return list;
@@ -34,7 +34,11 @@ public class TSimpleUserEntitySFDaoImpl implements TSimpleUserEntityDao {
         return null;
     }
 
-    public void update(TSimpleUserEntity entity) {
+    public void updateDetached(TSimpleUserEntity entity) {
+
+    }
+
+    public void updateTransient(TSimpleUserEntity entity, TSimpleUserEntity entity2) {
 
     }
 

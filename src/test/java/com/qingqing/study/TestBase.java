@@ -13,7 +13,6 @@ import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
         "classpath:applicationContext.xml",
 })
 public class TestBase {
-
     protected void printJson(Object object){
         System.out.println(JsonUtil.getJsonFromObject(object));
     }
